@@ -1,4 +1,5 @@
 import darkcloud.hub.client as client
+import darkcloud.hub.core as core
 
 def parse(connection, message):
 	addr = connection.remote_addr()
@@ -10,13 +11,13 @@ def parse(connection, message):
 		if not isauth:
 			if data[0] == 'auth':
 				if client.auth(addr, data[1], data[2], data[3]):
-					connection.send('ok darkcloud 0.1')
+					connection.send('ok %s %s' % (core.name, core.version))
 					return
 				else:
 					connection.send('fail')
 					return
 			else:
-				connection.send('access denied\n')
+				connection.send('access denied')
 				return
 
 		elif isauth == client.CLIENT_ADMIN:

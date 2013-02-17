@@ -1,8 +1,9 @@
 #!/usr/bin/env python2
 
 from darkcloud.hub.application import main_hub
+from darkcloud.hub.core import full_name
 
 if __name__ == "__main__":
-	print("Starting DarkCloud daemon")
+	print("Starting %s" % full_name)
 	main_hub()
-	print("\rStopping DarkCloud daemon")
+	print("\rStopping %s" % full_name)
