@@ -1,5 +1,3 @@
-import json
-
 CLIENT_UNKNOWN = 0
 CLIENT_ADMIN = 1
 CLIENT_SERVER = 2
@@ -55,7 +53,7 @@ def list_all(show = ['admins', 'slaves']):
 		for x in out['slaves']:
 			x.pop('conn')
 	
-	return json.dumps(out)
+	return out
 
 def auth(addr, client_type, clientname, password):
 	if client_type == "adm":
