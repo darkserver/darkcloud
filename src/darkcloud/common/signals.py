@@ -13,7 +13,6 @@ class Signals():
 			self.handlers.remove(signal_name)
 			return True
 		except KeyError:
-			print("Signal handler %s doesn't exists!" % (signal_name))
 			return False
 
 	def emit(self, signal_name, *args):
@@ -22,7 +21,6 @@ class Signals():
 				signal(*args)
 			return True
 		except KeyError:
-			print("Signal handler %s doesn't exists!" % (signal_name))
 			return False
 
 signals = Signals()
