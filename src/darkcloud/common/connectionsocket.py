@@ -30,7 +30,7 @@ class ConnectionSocket():
 		self.socket.send(data)
 
 	def sendjson(self, data):
-		self.send("%s\n" % json.dumps(data))
+		self.send("%s\n" % json.dumps(data, sort_keys=False, indent=2))
 
 	def remote_addr(self):
 		return "%s:%s" % (self.socket.getpeername())
