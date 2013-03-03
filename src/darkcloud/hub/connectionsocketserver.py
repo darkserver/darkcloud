@@ -18,6 +18,7 @@ class ConnectionSocketServer(ConnectionSocket):
 
 		try:
 			self.socket.bind((settings.HUB_HOST, settings.HUB_PORT))
+			self.socket.setblocking(False)
 		except socket.error as err:
 			print("\033[1;33m%s\033[0m" % err)
 			sys.exit(1)
@@ -62,7 +63,7 @@ class ConnectionSocketServer(ConnectionSocket):
 
 					signals.emit('connection:data_received', self.connections[address], data)
 				else:
-					print("Closing %s after reading no data" % (address))
+					print("[%s] END" % address)
 
 					if s in self.connection_outputs:
 						self.connection_outputs.remove(s)
@@ -84,10 +85,7 @@ class ConnectionSocketServer(ConnectionSocket):
 				print("Output queue for %s is empty!" % address)
 				self.connection_outputs.remove(s)
 			else:
-				print("XXX: %s" % next_msg)
 				address = "%s:%s" % s.getpeername()
-				print next_msg
-				#self.connections[address].send(next_msg)
 
 		for s in exception:
 			address = "%s:%s" % connection.socket.getpeername()
