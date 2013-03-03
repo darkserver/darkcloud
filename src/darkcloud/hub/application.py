@@ -1,8 +1,3 @@
-#!/usr/bin/env python2
-
-import select
-import sys
-import socket
 from time import sleep
 
 import darkcloud.hub.client as client
@@ -10,7 +5,7 @@ import darkcloud.hub.request as request
 from darkcloud.hub.connectionsocketserver import ConnectionSocketServer
 from darkcloud.common.signals import signals
 
-def main_hub():
+def main():
 	server = ConnectionSocketServer()
 
 	signals.connect('connection:connected', client.add)
@@ -21,4 +16,6 @@ def main_hub():
 		while server.pool():
 			sleep(0.01)
 	except KeyboardInterrupt:
-		del server
+		pass
+
+	del server
