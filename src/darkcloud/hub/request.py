@@ -1,43 +1,57 @@
 import darkcloud.hub.client as client
 import darkcloud.hub.core as core
+from darkcloud.common.hmac import HMAC
+from darkcloud.common.request import reply, check_cmd
 
-def parse(connection, message):
-	addr = connection.remote_addr()
-	print("%-21s | \033[0;33m%-12s\033[0m | %s" % (addr, client.get_by_addr(addr), message))
-	data = message.strip().split(' ')
+# decorators...
+
+def needs_auth(fn):
+	def wrapped(**kwargs):
+		isauth, cl = client.authorized(kwargs['remote_addr'])
+		if isauth == client.CLIENT_ADMIN:
+			return fn(kwargs['data'])
+		else:
+			return reply(401)
+	return wrapped
+
+# code
+
+cmds = {
+	'auth' : 'auth',
+	'list' : 'list',
+}
+
+def parse(conn, msg, use_hmac = True):
+	if use_hmac:
+		(msg_hash, msg) = msg.split(' ', 1)
+		hmac = HMAC()
+
+		if not hmac.compare(msg_hash, msg):
+			return conn.sendjson(reply(403))
+
+	data = msg.strip().split(' ')
+
 	try:
-		isauth, cl = client.authorized(addr)
-
-		if not isauth:
-			if data[0] == 'auth':
-				if client.auth(addr, data[1], data[2], data[3]):
-					connection.send('ok %s %s' % (core.name, core.version))
-					return
-				else:
-					connection.send('fail')
-					return
-			else:
-				connection.send('access denied')
-				return
-
-		elif isauth == client.CLIENT_ADMIN:
-			if data[0] == 'list':
-				if len(data) > 1:
-					if data[1]:
-						connection.send(client.list_all([data[1]]))
-						return
-				else:
-					connection.send(client.list_all())
-					return
-
-		elif isauth == client.CLIENT_SERVER:
-			if data[0] == 'get':
-				if data[1] == 'config':
-					return
-			connection.send('no actions')
-			return
-
+		(function, args) = check_cmd(data, cmds)
+		conn.sendjson(globals()['_parse_%s' % function](
+			data = args,
+			remote_addr = conn.remote_addr()
+		))
 	except IndexError:
 		pass
+	except TypeError:
+		conn.sendjson(reply(404))
 
-	connection.send('request invalid')
+def _parse_auth(data, **kwargs):
+	print "CCC"
+	if client.auth(kwargs['remote_addr'], data[0], data[1], data[2]):
+		return reply(200, {'fullname' : core.full_name, 'name' : core.name, 'version' : core.version})
+	else:
+		return reply(403)
+
+@needs_auth
+def _parse_list(data, **kwargs):
+	if len(data) > 1:
+		return reply(200, client.list_all([data[1]]))
+	else:
+		return reply(200, client.list_all())
