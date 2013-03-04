@@ -1,11 +1,11 @@
-from time import sleep
+import readline
 import sys
+from socket import gethostbyaddr
 
 from darkcloud.common.connectionsocketclient import ConnectionSocketClient
 from darkcloud.common.signals import signals
 
 import darkcloud.settings as settings
-import readline
 
 def main():
 	settings.DEBUG = False
@@ -17,7 +17,7 @@ def main():
 	client.connect()
 
 	x = client.remote_addr().split(':')
-	remote = '%s:%s' % (x[0], x[1])
+	remote = '%s:%s' % (gethostbyaddr(x[0])[0], x[1])
 
 	try:
 		client.send("auth adm admin 1234\n");
