@@ -31,7 +31,6 @@ class RequestServer(Request):
 			return self.reply(200, {'fullname' : core.full_name, 'name' : core.name, 'version' : core.version})
 		else:
 			return self.reply(403)
-		return "1"
 
 	@needs_auth
 	def _parse_list(self, data, **kwargs):
