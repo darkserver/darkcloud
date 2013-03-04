@@ -40,7 +40,10 @@ class Request():
 
 	def parse(self, conn, msg):
 		if self.use_hmac:
-			(msg_hash, msg) = msg.split(' ', 1)
+			try:
+				(msg_hash, msg) = msg.split(' ', 1)
+			except ValueError:
+				return conn.sendjson(self.reply(403))
 			hmac = HMAC()
 
 			if not hmac.compare(msg_hash, msg):
