@@ -82,7 +82,6 @@ class ConnectionSocketServer(ConnectionSocket):
 				next_msg = self.message_queues[s].get_nowait()
 			except Queue.Empty:
 				address = "%s:%s" % s.getpeername()
-				print("Output queue for %s is empty!" % address)
 				self.connection_outputs.remove(s)
 			else:
 				address = "%s:%s" % s.getpeername()
