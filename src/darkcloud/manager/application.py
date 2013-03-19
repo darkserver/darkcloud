@@ -20,16 +20,13 @@ def main():
 		sys.exit(1)
 	
 	signals.connect('connection:connected', on_connect)
+	signals.connect('connection:data_received', request.parse)
 	
 	client.connect()
 
 	try:
-		on_connect(client)
-		signals.connect('connection:data_received', request.parse)
-
 		while True:
 			client.pool()
-			pass
 	except KeyboardInterrupt:
 		pass
 	
