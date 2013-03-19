@@ -1,6 +1,6 @@
 from darkcloud.common.hmac import HMAC
 
-class Request():
+class RequestFramework():
 	def __init__(self, use_hmac = True):
 		self.use_hmac = use_hmac
 		self.cmds = {}
@@ -39,6 +39,9 @@ class Request():
 		return False
 
 	def parse(self, conn, msg):
+		if not msg:
+			return False
+
 		if self.use_hmac:
 			try:
 				(msg_hash, msg) = msg.split(' ', 1)
@@ -50,6 +53,9 @@ class Request():
 				return conn.sendjson(self.reply(403))
 
 		data = msg.strip().split(' ')
+
+		if data[0] == 'json':
+			return False
 
 		try:
 			(function, args) = self.check_cmd(data, self.cmds)

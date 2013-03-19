@@ -52,7 +52,13 @@ class ConnectionSocketServer(ConnectionSocket):
 			else:
 				"""Current connection"""
 
-				address = "%s:%s" % s.getpeername()
+				try:
+					address = "%s:%s" % s.getpeername()
+				except socket.error:
+					try:
+						self.connection_outputs.remove(s)
+					except ValueError:
+						pass
 
 				data = self.connections[address].recv()
 				if data:
@@ -84,7 +90,10 @@ class ConnectionSocketServer(ConnectionSocket):
 				address = "%s:%s" % s.getpeername()
 				self.connection_outputs.remove(s)
 			else:
-				address = "%s:%s" % s.getpeername()
+				try:
+					address = "%s:%s" % s.getpeername()
+				except socket.error:
+					self.connection_outputs.remove(s)
 
 		for s in exception:
 			address = "%s:%s" % connection.socket.getpeername()

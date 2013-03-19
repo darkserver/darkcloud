@@ -1,7 +1,7 @@
 import darkcloud.hub.client as client
 import darkcloud.hub.core as core
 from darkcloud.common.hmac import HMAC
-from darkcloud.common.request import Request
+from darkcloud.common.request import RequestFramework
 
 # decorators...
 def needs_auth(fn):
@@ -17,9 +17,9 @@ def needs_auth(fn):
 	return wrapped
 
 # code
-class RequestServer(Request):
+class Request(RequestFramework):
 	def __init__(self, use_hmac = True):
-		Request.__init__(self, use_hmac)
+		RequestFramework.__init__(self, use_hmac)
 
 		self.cmds = {
 			'auth' : 'auth',

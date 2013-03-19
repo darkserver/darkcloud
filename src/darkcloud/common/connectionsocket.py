@@ -4,7 +4,7 @@ import socket
 import json
 
 class ConnectionSocket():
-	def __init__(self, use_socket=None):
+	def __init__(self, use_socket = None):
 		if use_socket:
 			self.socket = use_socket
 		else:
@@ -22,7 +22,7 @@ class ConnectionSocket():
 			print("\033[0;36mrecv\033[0m> \033[0;33m%s\033[0m" % (data))
 
 		return data
-	
+
 	def send(self, data):
 		if settings.DEBUG:
 			print("\033[0;33msend\033[0m> \033[0;33m%s\033[0m" % (data))
@@ -30,7 +30,8 @@ class ConnectionSocket():
 		self.socket.send(data)
 
 	def sendjson(self, data):
-		self.send("%s\n" % json.dumps(data, sort_keys=False, indent=2))
+		self.send("json %s\n" % json.dumps(data, sort_keys = False, indent = 2))
+		return True
 
 	def remote_addr(self):
 		return "%s:%s" % (self.socket.getpeername())
