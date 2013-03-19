@@ -28,7 +28,6 @@ class ConnectionSocketClient(ConnectionSocket):
 		try:
 			if self.connected == False:
 				sleep(1)
-
 			ConnectionSocket.__init__(self)
 			self.socket.connect((settings.HUB_HOST, settings.HUB_PORT))
 			self.connected = True
@@ -58,7 +57,7 @@ class ConnectionSocketClient(ConnectionSocket):
 			self.lost(err)
 	
 	def lost(self, err):
-		print("\033[1;31mConnection to %s:%s lost\033[0m: %s" % (settings.HUB_HOST, settings.HUB_PORT, err[1]))
+		print("\033[1;31mConnection to %s:%s lost\033[0m: %s" % (settings.HUB_HOST, settings.HUB_PORT, err))
 		signals.emit('connection:lost')
 		self.disconnect()
 		return self.connect()
@@ -69,6 +68,8 @@ class ConnectionSocketClient(ConnectionSocket):
 				signals.emit('connection:data_received', self, self.data)
 
 				self.data = self.socket.recv(settings.BUFFER_SIZE).rstrip('\n')
+
+				return self.data
 			else:
 				print connected
 				if self.connected or self.connected == None:
@@ -76,8 +77,6 @@ class ConnectionSocketClient(ConnectionSocket):
 				self.connect()
 		except socket.error as err:
 			return self.lost(err)
-
-		return self.data
 	
 	def is_connected(self):
 		return self.connected

@@ -1,4 +1,5 @@
 import darkcloud.settings as settings
+from darkcloud.common.hmac import HMAC
 
 import socket
 import json
@@ -10,6 +11,7 @@ class ConnectionSocket():
 		else:
 			self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 			self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+			self.socket.settimeout(0.5)
 
 	def recv(self):
 		try:
@@ -30,8 +32,15 @@ class ConnectionSocket():
 		self.socket.send(data)
 
 	def sendjson(self, data):
-		self.send("json %s\n" % json.dumps(data, sort_keys = False, indent = 2))
-		return True
+		data = "json %s\n" % json.dumps(data, sort_keys = False, indent = 2)
+
+		hmac = HMAC()
+		signed_message = hmac.sign_message("", "", data)
+
+		try:
+			ConnectionSocket.send(self, signed_message)
+		except socket.error as err:
+			self.lost(err)
 
 	def remote_addr(self):
 		return "%s:%s" % (self.socket.getpeername())
