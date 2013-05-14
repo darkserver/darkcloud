@@ -40,6 +40,19 @@ class RequestFramework():
                     return (level[d], data[1:])
         return False
 
+    def _exec_function(self, conn, data):
+        try:
+            (function, args) = self.check_cmd(data, self.cmds)
+            function = '_parse_%s' % (function)
+            return getattr(self, function)(
+                data = args,
+                remote_addr = conn.remote_addr()
+            )
+        except IndexError:
+            return False
+        except TypeError:
+            return False
+
     def parse(self, conn, message):
         if not message:
             return False
@@ -49,7 +62,7 @@ class RequestFramework():
         except ValueError:
             return conn.sendresp(self.reply(500, "This doesn't looks like JSON data..."))
 
-        if 'cmd' not in msg:
+        if 'cmd' not in msg and 'info' not in msg:
             return False
 
         if self.use_hmac:
@@ -62,18 +75,19 @@ class RequestFramework():
             if not hmac.compare(msg_hash, msg):
                 return conn.sendresp(self.reply(403))
 
-        print msg
-        data = msg['cmd'].strip().split(' ')
+        if 'cmd' in msg:
+            ret = self._exec_function(conn, msg['cmd'].split(' '))
+            if ret == False:
+                conn.sendresp(self.reply(500))
+            else:
+                conn.sendresp(ret)
+        elif 'info' in msg:
+            # handle info in it's special way
+            ret = self.set_info(msg['info'])
+            if ret == False:
+                conn.sendresp(self.reply(404))
 
-        try:
-            (function, args) = self.check_cmd(data, self.cmds)
-            function = '_parse_%s' % (function)
-            out = getattr(self, function)(
-                data = args,
-                remote_addr = conn.remote_addr()
-            )
-            conn.sendresp(out)
-        except IndexError:
-            conn.sendresp(self.reply(404))
-        except TypeError:
-            conn.sendresp(self.reply(404))
+    def set_info(self, data):
+        """Do nothing here
+        There's should be method in ihnerited class"""
+        pass
