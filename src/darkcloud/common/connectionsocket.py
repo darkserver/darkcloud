@@ -36,21 +36,25 @@ class ConnectionSocket():
             'hmac': hmac.sign_message("", "", data), # FIXME TODO add real salt
         }
 
+    def _send_attr(self, attr, data):
+        x = self._create_response(data)
+        x[attr] = data
+        self.sendjson(x)
+
     def sendjson(self, data):
         try:
             ConnectionSocket.send(self, json.dumps(data, sort_keys = False, indent = 2))
         except socket.error as err:
             self.lost(err)
 
-    def sendresp(self, data):
-        x = self._create_response(data)
-        x['resp'] = data
-        self.sendjson(x)
-
     def sendcmd(self, data):
-        x = self._create_response(data)
-        x['cmd'] = data
-        self.sendjson(x)
+        self._send_attr('cmd', data)
+
+    def sendresp(self, data):
+        self._send_attr('resp', data)
+
+    def sendinfo(self, data):
+        self._send_attr('info', data)
 
     def remote_addr(self):
         return "%s:%s" % (self.socket.getpeername())
