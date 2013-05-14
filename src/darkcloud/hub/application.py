@@ -6,17 +6,17 @@ from darkcloud.hub.connectionsocketserver import ConnectionSocketServer
 from darkcloud.common.signals import signals
 
 def main():
-	server = ConnectionSocketServer()
-	request = Request()
+    server = ConnectionSocketServer()
+    request = Request()
 
-	signals.connect('connection:connected', client.add)
-	signals.connect('connection:disconnected', client.remove)
-	signals.connect('connection:data_received', request.parse)
+    signals.connect('connection:connected', client.add)
+    signals.connect('connection:disconnected', client.remove)
+    signals.connect('connection:data_received', request.parse)
 
-	try:
-		while server.pool():
-			sleep(0.01)
-	except KeyboardInterrupt:
-		pass
+    try:
+        while server.pool():
+            sleep(0.01)
+    except KeyboardInterrupt:
+        pass
 
-	del server
+    del server

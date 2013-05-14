@@ -9,27 +9,27 @@ from darkcloud.common.signals import signals
 import darkcloud.settings as settings
 
 def on_connect(client):
-	client.send("auth slave %s imslave!\n" % (gethostbyaddr('127.0.0.1')[0]))
-	print client.pool()
+    client.send("auth slave %s imslave!\n" % (gethostbyaddr('127.0.0.1')[0]))
+    print client.pool()
 
 def main():
-	client = ConnectionSocketClient()
-	request = Request()
+    client = ConnectionSocketClient()
+    request = Request()
 
-	if client == False:
-		sys.exit(1)
-	
-	signals.connect('connection:connected', on_connect)
-	signals.connect('connection:data_received', request.parse)
-	
-	client.connect()
+    if client == False:
+        sys.exit(1)
 
-	try:
-		while True:
-			client.pool()
-	except KeyboardInterrupt:
-		pass
-	
-	client.disconnect()
-	
-	del client
+    signals.connect('connection:connected', on_connect)
+    signals.connect('connection:data_received', request.parse)
+
+    client.connect()
+
+    try:
+        while client.pool():
+            pass
+    except KeyboardInterrupt:
+        pass
+
+    client.disconnect()
+
+    del client
