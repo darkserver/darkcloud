@@ -1,5 +1,7 @@
 from darkcloud.common.hmac import HMAC
 
+import json
+
 class RequestFramework():
     def __init__(self, use_hmac = True):
         self.use_hmac = use_hmac
@@ -38,24 +40,30 @@ class RequestFramework():
                     return (level[d], data[1:])
         return False
 
-    def parse(self, conn, msg):
-        if not msg:
+    def parse(self, conn, message):
+        if not message:
+            return False
+
+        try:
+            msg = json.loads(message)
+        except ValueError:
+            return conn.sendresp(self.reply(500, "This doesn't looks like JSON data..."))
+
+        if 'cmd' not in msg:
             return False
 
         if self.use_hmac:
             try:
-                (msg_hash, msg) = msg.split(' ', 1)
-            except ValueError:
-                return conn.sendjson(self.reply(403))
+                msg_hash = msg['hmac']
+            except KeyError:
+                return conn.sendresp(self.reply(403))
             hmac = HMAC()
 
             if not hmac.compare(msg_hash, msg):
-                return conn.sendjson(self.reply(403))
+                return conn.sendresp(self.reply(403))
 
-        data = msg.strip().split(' ')
-
-        if data[0] == 'json':
-            return False
+        print msg
+        data = msg['cmd'].strip().split(' ')
 
         try:
             (function, args) = self.check_cmd(data, self.cmds)
@@ -64,8 +72,8 @@ class RequestFramework():
                 data = args,
                 remote_addr = conn.remote_addr()
             )
-            conn.sendjson(out)
+            conn.sendresp(out)
         except IndexError:
-            conn.sendjson(self.reply(404))
+            conn.sendresp(self.reply(404))
         except TypeError:
-            conn.sendjson(self.reply(404))
+            conn.sendresp(self.reply(404))

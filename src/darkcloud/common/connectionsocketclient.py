@@ -8,6 +8,8 @@ from darkcloud.common.signals import signals
 
 import darkcloud.settings as settings
 
+import json
+
 class ConnectionSocketClient(ConnectionSocket):
     def __init__(self):
         if not settings.HUB_HOST or not settings.HUB_PORT:

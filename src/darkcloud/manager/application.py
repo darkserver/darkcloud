@@ -9,8 +9,7 @@ from darkcloud.common.signals import signals
 import darkcloud.settings as settings
 
 def on_connect(client):
-    client.send("auth slave %s imslave!\n" % (gethostbyaddr('127.0.0.1')[0]))
-    print client.pool()
+    client.sendcmd("auth slave %s imslave!" % (gethostbyaddr('127.0.0.1')[0]))
 
 def main():
     client = ConnectionSocketClient()
