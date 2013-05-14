@@ -38,3 +38,7 @@ class Request(RequestFramework):
             return self.reply(200, client.list_all([data[1]]))
         else:
             return self.reply(200, client.list_all())
+
+    def set_info(self, data):
+        if 'caps' in data:
+            print data['caps']
