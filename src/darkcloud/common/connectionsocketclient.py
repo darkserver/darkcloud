@@ -33,6 +33,7 @@ class ConnectionSocketClient(ConnectionSocket):
             ConnectionSocket.__init__(self)
             self.socket.connect((settings.HUB_HOST, settings.HUB_PORT))
             self.connected = True
+            print("\033[1;32mConnected to %s:%s\033[0m" % (settings.HUB_HOST, settings.HUB_PORT))
             signals.emit('connection:connected', self)
         except socket.error as err:
             if self.connected == False:
@@ -58,20 +59,28 @@ class ConnectionSocketClient(ConnectionSocket):
         except socket.error as err:
             self.lost(err)
 
-    def lost(self, err):
-        print("\033[1;31mConnection to %s:%s lost\033[0m: %s" % (settings.HUB_HOST, settings.HUB_PORT, err))
+    def lost(self, err = None):
+        if err:
+            print("\033[1;31mConnection to %s:%s lost\033[0m: %s" % (settings.HUB_HOST, settings.HUB_PORT, err))
+        else:
+            print("\033[1;31mConnection to %s:%s lost\033[0m" % (settings.HUB_HOST, settings.HUB_PORT))
+
         signals.emit('connection:lost')
         self.disconnect()
         return self.connect()
 
     def pool(self):
         try:
-            if self.socket:
-                self.data = self.recv().rstrip('\n')
+            if self.socket and self.connected:
+                self.data = self.recv()
+                if not self.data:
+                    self.lost()
+                    return None
+
+                self.data = self.data.rstrip('\n')
 
                 signals.emit('connection:data_received', self, self.data)
             else:
-                print connected
                 if self.connected or self.connected == None:
                     print("Not connected. Connecting. Autoreconnect every 5 second")
                 self.connect()

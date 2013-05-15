@@ -11,7 +11,8 @@ import darkcloud.settings as settings
 
 def on_connect(client):
     client.sendcmd("auth slave %s imslave!" % (gethostbyaddr('127.0.0.1')[0]))
-    x = json.loads(client.pool())['resp']['data']
+    welcome_data = client.pool()
+    x = json.loads(welcome_data)['resp']['data']
     print("Connected to %s %s" % (x['fullname'], x['version']))
     # FIXME TODO read real capabilities
     client.sendinfo({
@@ -30,11 +31,8 @@ def main():
 
     client.connect()
 
-    try:
-        while client.pool():
-            pass
-    except KeyboardInterrupt:
-        pass
+    while True:
+        client.pool()
 
     client.disconnect()
 

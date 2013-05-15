@@ -15,6 +15,8 @@ class ConnectionSocket():
     def recv(self):
         try:
             data = self.socket.recv(settings.BUFFER_SIZE).rstrip('\n')
+            if not data:
+                return None
         except socket.error as err:
             print("\033[1;31mSOCKET ERROR:\033[0m %s" % err)
             return None
