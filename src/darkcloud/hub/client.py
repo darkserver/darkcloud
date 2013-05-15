@@ -6,9 +6,10 @@ clients = []
 
 def add(connection):
     clients.append({
-        'conn' : connection,
-        'address' : connection.remote_addr(),
-        'type' : CLIENT_UNKNOWN,
+        'conn': connection,
+        'address': connection.remote_addr(),
+        'type': CLIENT_UNKNOWN,
+        'info': {},
     })
 
     return True
@@ -26,11 +27,8 @@ def remove(addr):
     try:
         for c in clients:
             if c['address'] == addr:
-                if c['type'] == CLIENT_ADMIN:
-                    print("\033[1;33madmin removed [%s from %s]\033[0m" % (c['username'], c['address']))
-                elif c['type'] == CLIENT_SERVER:
-                    print("\033[1;32madmin removed [%s from %s]\033[0m" % (c['hostname'], c['address']))
                 clients.remove(c)
+                return
     except ValueError:
         pass
 
@@ -106,3 +104,9 @@ def send_to_all(data, category = ['admins', 'slaves']):
             if c['state'] == 0:
                 c['conn'].send(data)
     return True
+
+def on_info(addr, data):
+    for c in clients:
+        if c['address'] == addr:
+            for d in data:
+                c['info'][d] = data[d]

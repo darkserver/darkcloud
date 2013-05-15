@@ -1,4 +1,5 @@
 from darkcloud.common.hmac import HMAC
+from darkcloud.common.signals import signals
 
 import json
 
@@ -83,11 +84,4 @@ class RequestFramework():
                 conn.sendresp(ret)
         elif 'info' in msg:
             # handle info in it's special way
-            ret = self.set_info(msg['info'])
-            if ret == False:
-                conn.sendresp(self.reply(404))
-
-    def set_info(self, data):
-        """Do nothing here
-        There's should be method in ihnerited class"""
-        pass
+            signals.emit('data:on_info', conn.remote_addr(), msg['info'])

@@ -34,11 +34,7 @@ class Request(RequestFramework):
 
     @needs_auth
     def _parse_list(self, data, **kwargs):
-        if len(data) > 1:
-            return self.reply(200, client.list_all([data[1]]))
+        if len(data) >= 1:
+            return self.reply(200, client.list_all([data[0]]))
         else:
             return self.reply(200, client.list_all())
-
-    def set_info(self, data):
-        if 'caps' in data:
-            print data['caps']

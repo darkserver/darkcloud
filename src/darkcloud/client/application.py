@@ -8,11 +8,11 @@ from darkcloud.common.signals import signals
 import darkcloud.settings as settings
 
 def on_connect(client):
-    client.send("auth adm admin 1234\n");
-    print  ">> %s <<" % client.pool()
+    client.sendcmd("auth adm admin 1234");
+    print("%s" % client.pool())
 
 def on_recv(client, data):
-    print " >>> %s <<< "% data
+    print("%s" % data)
 
 def main():
     settings.DEBUG = False
@@ -38,9 +38,8 @@ def main():
             if not cmd:
                 continue
 
-            client.send(cmd)
+            client.sendcmd(cmd)
             client.pool()
-    #        print client.pool()
 
     #except KeyboardInterrupt:
     #    pass

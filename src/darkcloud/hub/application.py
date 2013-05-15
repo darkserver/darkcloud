@@ -13,6 +13,8 @@ def main():
     signals.connect('connection:disconnected', client.remove)
     signals.connect('connection:data_received', request.parse)
 
+    signals.connect('data:on_info', client.on_info)
+
     try:
         while server.pool():
             sleep(0.01)
