@@ -54,12 +54,13 @@ def main():
             client.sendcmd(cmd)
             client.pool()
 
-    #except KeyboardInterrupt:
-    #    pass
+    except KeyboardInterrupt:
+        print("quit")
+        pass
     except EOFError:
         pass
 
-    print("\nQuitting...")
+    print("Quitting...")
 
     client.disconnect()
 
