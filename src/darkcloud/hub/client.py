@@ -1,6 +1,7 @@
 CLIENT_UNKNOWN = 0
 CLIENT_ADMIN = 1
-CLIENT_SERVER = 2
+CLIENT_USER = 2
+CLIENT_SERVER = 3
 
 clients = []
 
@@ -32,24 +33,34 @@ def remove(addr):
     except ValueError:
         pass
 
-def list_all(show = ['admins', 'slaves']):
+def _translate_group_to_int(group_name):
+    group_assigns = {
+        'admins': CLIENT_ADMIN,
+        'users':  CLIENT_USER,
+        'slaves': CLIENT_SERVER,
+    }
+    return group_assigns[group_name]
+
+def _list(group):
+    out = []
+
+    for c in clients:
+        if c['type'] == _translate_group_to_int(group):
+            out.append(c.copy())
+
+    # remove connection socket
+    # we can't transport this via json
+    # and well... we don't even want to do this
+    for x in out:
+        x.pop('conn')
+
+    return out
+
+def list_all(show = ['admins', 'users', 'slaves']):
     out = {}
 
-    if 'admins' in show:
-        out['admins'] = []
-        for c in clients:
-            if c['type'] == CLIENT_ADMIN:
-                out['admins'].append(c.copy())
-        for x in out['admins']:
-            x.pop('conn')
-
-    if 'slaves' in show:
-        out['slaves'] = []
-        for c in clients:
-            if c['type'] == CLIENT_SERVER:
-                out['slaves'].append(c.copy())
-        for x in out['slaves']:
-            x.pop('conn')
+    for s in show:
+        out[s] = _list(s)
 
     return out
 
@@ -96,9 +107,11 @@ def send(addr, data):
             return True
     return False
 
-def send_to_all(data, category = ['admins', 'slaves']):
+def send_to_all(data, category = ['admins', 'users', 'slaves']):
     for c in clients:
         if 'admins' in category and c['type'] == CLIENT_ADMIN:
+            c['conn'].send(data)
+        if 'users' in category and c['type'] == CLIENT_USER:
             c['conn'].send(data)
         if 'slaves' in category and c['type'] == CLIENT_SERVER:
             if c['state'] == 0:
