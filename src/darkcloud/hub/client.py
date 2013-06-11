@@ -39,7 +39,10 @@ def _translate_group_to_int(group_name):
         'users':  CLIENT_USER,
         'slaves': CLIENT_SERVER,
     }
-    return group_assigns[group_name]
+    try:
+        return group_assigns[group_name]
+    except KeyError:
+        return None
 
 def _list(group):
     out = []
