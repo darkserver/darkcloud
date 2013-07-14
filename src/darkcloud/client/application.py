@@ -4,6 +4,7 @@ import sys
 from socket import gethostbyaddr
 
 from darkcloud.common.connectionsocketclient import ConnectionSocketClient
+from darkcloud.common.config import Config
 from darkcloud.common.signals import signals
 
 import darkcloud.client.views
@@ -11,6 +12,8 @@ import darkcloud.client.views
 import darkcloud.settings as settings
 
 last_cmd = ''
+
+cfg = None
 
 def on_connect(client):
     client.sendcmd("auth adm admin 1234");
@@ -20,14 +23,18 @@ def on_recv(client, data):
     if not last_cmd:
         return
     try:
-        c = getattr(darkcloud.client.views, last_cmd.split(' ')[0])(json.loads(data)['resp']['data'])
+        c = getattr(darkcloud.client.views,
+                    last_cmd.split(' ')[0])(json.loads(data)['resp']['data'])
     except AttributeError:
         print("%s" % data)
 
 def main():
-    settings.DEBUG = False
+    global cfg
 
-    client = ConnectionSocketClient()
+    cfg = Config('client')
+
+    client = ConnectionSocketClient(cfg['hub'].host(),
+                                    cfg['hub'].port())
     if client == False:
         sys.exit(1)
 

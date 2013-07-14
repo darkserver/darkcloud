@@ -5,7 +5,7 @@ import socket
 import json
 
 class ConnectionSocket():
-    def __init__(self, use_socket = None):
+    def __init__(self, use_socket=None):
         if use_socket:
             self.socket = use_socket
         else:

@@ -1,9 +1,6 @@
 #!/usr/bin/env python2
 
 from darkcloud.hub.application import main
-from darkcloud.hub.core import full_name
 
 if __name__ == "__main__":
-    print("Starting %s" % full_name)
     main()
-    print("\rStopping %s" % full_name)

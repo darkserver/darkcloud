@@ -4,6 +4,7 @@ from time import sleep
 
 from darkcloud.common.connectionsocket import ConnectionSocket
 from darkcloud.common.hmac import HMAC
+from darkcloud.common.logger import Logger
 from darkcloud.common.signals import signals
 
 import darkcloud.settings as settings
@@ -11,14 +12,11 @@ import darkcloud.settings as settings
 import json
 
 class ConnectionSocketClient(ConnectionSocket):
-    def __init__(self):
-        if not settings.HUB_HOST or not settings.HUB_PORT:
-            print("Connection details not specified.\n");
-            print("You must specify HUB_HOST and HUB_PORT in your settings file\n");
-            print("And it must point to DarkCloud Hub server\n");
-            return False
-
+    def __init__(self, host, port):
         ConnectionSocket.__init__(self)
+
+        self.host = host
+        self.port = port
 
         self.connected = None
         self.data = None
@@ -27,19 +25,25 @@ class ConnectionSocketClient(ConnectionSocket):
         self.disconnect()
 
     def connect(self):
+        log = Logger('client')
         try:
             if self.connected == False:
                 sleep(1)
             ConnectionSocket.__init__(self)
-            self.socket.connect((settings.HUB_HOST, settings.HUB_PORT))
+            self.socket.connect((self.host, self.port))
             self.connected = True
-            print("\033[1;32mConnected to %s:%s\033[0m" % (settings.HUB_HOST, settings.HUB_PORT))
+
+            log.info("Connected to %s:%s" % (self.host, self.port))
             signals.emit('connection:connected', self)
         except socket.error as err:
             if self.connected == False:
-                print("\033[1;31mCan't connect to %s:%s\033[0m: %s" % (settings.HUB_HOST, settings.HUB_PORT, err[1]))
+                log.critical("Can't connect to %s:%s: %s" % (self.host,
+                                                             self.port,
+                                                             err[1]))
             elif self.connected or self.connected == None:
-                print("\033[1;31mCan't connect to %s:%s\033[0m: %s" % (settings.HUB_HOST, settings.HUB_PORT, err[1]))
+                log.critical("Can't connect to %s:%s: %s" % (self.host,
+                                                             self.port,
+                                                             err[1]))
                 self.connected = False
 
         return self.connected

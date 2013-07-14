@@ -1,0 +1,9 @@
+hub: 127.0.0.1:6066
+plugins:
+  www:
+    - nginx
+    - apache
+  mysql:
+    - mysql
+  pgsql:
+    - pgsql

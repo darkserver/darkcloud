@@ -4,12 +4,17 @@ import sys
 import Queue
 
 from darkcloud.common.connectionsocket import ConnectionSocket
+from darkcloud.common.logger import Logger
 from darkcloud.common.signals import signals
-import darkcloud.settings as settings
+
+log = Logger('server')
 
 class ConnectionSocketServer(ConnectionSocket):
-    def __init__(self):
+    def __init__(self, host, port):
         ConnectionSocket.__init__(self)
+
+        self.host = host
+        self.port = port
 
         self.connections = {}
         self.connection_inputs = [self.socket]
@@ -17,10 +22,11 @@ class ConnectionSocketServer(ConnectionSocket):
         self.message_queues = {}
 
         try:
-            self.socket.bind((settings.HUB_HOST, settings.HUB_PORT))
+            self.socket.bind((self.host, self.port))
             self.socket.setblocking(False)
+            log.info("Listening on %s:%s" % (self.host, self.port))
         except socket.error as err:
-            print("\033[1;33m%s\033[0m" % err)
+            log.critical(err[1])
             sys.exit(1)
 
         self.socket.listen(5)
@@ -41,7 +47,7 @@ class ConnectionSocketServer(ConnectionSocket):
 
                 new_connection, new_address = s.accept()
                 address = "%s:%s" % new_address
-                print("[%s] BEGIN" % (address))
+                log.info("Client %s connected" % (address))
                 s.setblocking(False)
 
                 self.connection_inputs.append(new_connection)
@@ -69,7 +75,7 @@ class ConnectionSocketServer(ConnectionSocket):
 
                     signals.emit('connection:data_received', self.connections[address], data)
                 else:
-                    print("[%s] END" % address)
+                    log.info("Client %s disconnected" % address)
 
                     if s in self.connection_outputs:
                         self.connection_outputs.remove(s)
@@ -98,7 +104,7 @@ class ConnectionSocketServer(ConnectionSocket):
         for s in exception:
             address = "%s:%s" % connection.socket.getpeername()
 
-            print("Handling exceptional condition for %s!" % address)
+            log.critical("Handling exceptional condition for %s!" % address)
             self.connection_inputs.remove(s)
             if s in self.connection_outputs:
                 self.connection_outputs.remove(s)
