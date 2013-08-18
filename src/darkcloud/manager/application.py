@@ -26,7 +26,7 @@ def main():
     log.info("Starting DarkCloud Manager")
 
     cfg = Config('manager')
-    if not cfg.is_laoded():
+    if not cfg.is_loaded():
         sys.exit(1)
 
     client = ConnectionSocketClient(cfg['hub'].host(),
