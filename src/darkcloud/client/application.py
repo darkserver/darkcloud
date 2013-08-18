@@ -33,6 +33,9 @@ def main():
 
     cfg = Config('client')
 
+    if not cfg.is_loaded():
+        sys.exit(1)
+
     client = ConnectionSocketClient(cfg['hub'].host(),
                                     cfg['hub'].port())
     if client == False:

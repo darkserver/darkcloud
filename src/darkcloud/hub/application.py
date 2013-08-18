@@ -16,6 +16,9 @@ def main():
     log.info('Starting %s %s' % (full_name, version))
 
     cfg = Config('hub')
+    if not cfg.is_loaded():
+        sys.exit(1)
+
     server = ConnectionSocketServer(cfg['listen'].host(),
                                     cfg['listen'].port())
     request = Request()

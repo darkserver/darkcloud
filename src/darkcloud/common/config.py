@@ -33,6 +33,12 @@ class Config(object):
     def __init__(self, filename):
         self._data = self._load_config(filename)
 
+    def is_loaded(self):
+        if self._data:
+            return True
+        else:
+            return False
+
     def _load_config(self, filename):
         log = Logger('config')
         try:
@@ -41,7 +47,7 @@ class Config(object):
             log.debug("Loaded configuration file '%s'" % (filepath))
         except:
             try:
-                log.debug("Configuration not found at %s" % (filepath))
+                log.debug("Configuration not found at '%s'" % (filepath))
 
                 filepath = 'config/%s.yml' % (filename)
                 config_data = open(filepath).read()
@@ -53,4 +59,7 @@ class Config(object):
         return load(config_data)
 
     def __getitem__(self, key):
-        return ConfigObject(self._data[key])
+        try:
+            return ConfigObject(self._data[key])
+        except TypeError:
+            return None

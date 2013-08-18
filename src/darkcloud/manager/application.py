@@ -15,7 +15,6 @@ def on_connect(client):
     client.sendcmd("auth slave %s imslave!" % (gethostbyaddr('127.0.0.1')[0]))
     welcome_data = client.pool()
     x = json.loads(welcome_data)['resp']['data']
-    # FIXME TODO read real capabilities
     client.sendinfo({
         'caps': cfg['plugins'],
     })
@@ -27,6 +26,8 @@ def main():
     log.info("Starting DarkCloud Manager")
 
     cfg = Config('manager')
+    if not cfg.is_laoded():
+        sys.exit(1)
 
     client = ConnectionSocketClient(cfg['hub'].host(),
                                     cfg['hub'].port())
