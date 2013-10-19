@@ -54,7 +54,7 @@ def main():
     try:
         cmd = ''
         while True:
-            cmd = raw_input('\033[0;33m-(\033[1;33m%s\033[0;33m)->\033[0m ' % remote)
+            cmd = raw_input("%s " % (cfg['prompt'].ansi() % remote))
             if cmd == 'quit':
                 raise EOFError
             if not cmd:

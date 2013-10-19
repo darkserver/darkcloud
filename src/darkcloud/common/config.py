@@ -27,6 +27,9 @@ def ConfigObject(data):
             except AttributeError:
                 return None
 
+        def ansi(self):
+            return self.replace('\\e', '\033')
+
     return ConfigObject(data)
 
 class Config(object):
