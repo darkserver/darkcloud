@@ -35,31 +35,25 @@ class ConnectionSocket():
 
         self.socket.send(data)
 
-    def _create_response(self, data):
-        hmac = HMAC()
-        return {
-            'hmac': hmac.sign_message("", "", data), # FIXME TODO add real salt
-        }
-
-    def _send_attr(self, attr, data):
-        x = self._create_response(data)
-        x[attr] = data
-        self.sendjson(x)
+    def _add_hash_response(self, data):
+        # TODO: generate hash in top of message
+        return data
 
     def sendjson(self, data):
         try:
-            ConnectionSocket.send(self, json.dumps(data, sort_keys = False, indent = 2))
+            ConnectionSocket.send(self, self._add_hash_response(json.dumps(data, sort_keys=False, indent=2)))
         except socket.error as err:
             self.lost(err)
 
+    # obsolete
     def sendcmd(self, data):
-        self._send_attr('cmd', data)
+        self.sendjson({'cmd': data})
 
     def sendresp(self, data):
-        self._send_attr('resp', data)
+        self.sendjson({'resp': data})
 
     def sendinfo(self, data):
-        self._send_attr('info', data)
+        self.sendjson({'info': data})
 
     def remote_addr(self):
         try:
