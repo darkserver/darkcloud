@@ -4,7 +4,7 @@ import sys
 class Logger():
     def __init__(self, label=""):
         self._label = label
-        self._format = "%(timestamp)s [%(label)8s] %(level)-6s %(message)s\033[0m"
+        self._format = "%(timestamp)s [%(label)12s] %(level)-6s %(message)s\033[0m"
 
     def _log(self, level, message):
         if level == 'CRIT':

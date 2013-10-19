@@ -11,6 +11,8 @@ import darkcloud.settings as settings
 
 import json
 
+log = Logger('client')
+
 class ConnectionSocketClient(ConnectionSocket):
     def __init__(self, host, port):
         ConnectionSocket.__init__(self)
@@ -25,7 +27,6 @@ class ConnectionSocketClient(ConnectionSocket):
         self.disconnect()
 
     def connect(self):
-        log = Logger('client')
         try:
             if self.connected == False:
                 sleep(1)
@@ -65,9 +66,9 @@ class ConnectionSocketClient(ConnectionSocket):
 
     def lost(self, err = None):
         if err:
-            print("\033[1;31mConnection to %s:%s lost\033[0m: %s" % (settings.HUB_HOST, settings.HUB_PORT, err))
+            log.critical("Connection to %s:%s lost: %s" % (settings.HUB_HOST, settings.HUB_PORT, err))
         else:
-            print("\033[1;31mConnection to %s:%s lost\033[0m" % (settings.HUB_HOST, settings.HUB_PORT))
+            log.critical("Connection to %s:%s lost" % (settings.HUB_HOST, settings.HUB_PORT))
 
         signals.emit('connection:lost')
         self.disconnect()
@@ -86,7 +87,7 @@ class ConnectionSocketClient(ConnectionSocket):
                 signals.emit('connection:data_received', self, self.data)
             else:
                 if self.connected or self.connected == None:
-                    print("Not connected. Connecting. Autoreconnect every 5 second")
+                    log.notice("Not connected. Connecting. Autoreconnect every 5 second")
                 self.connect()
         except socket.error as err:
             return self.lost(err)

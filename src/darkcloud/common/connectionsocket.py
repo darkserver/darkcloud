@@ -1,8 +1,11 @@
 import darkcloud.settings as settings
 from darkcloud.common.hmac import HMAC
+from darkcloud.common.logger import Logger
 
 import socket
 import json
+
+log = Logger('connection')
 
 class ConnectionSocket():
     def __init__(self, use_socket=None):
@@ -59,7 +62,11 @@ class ConnectionSocket():
         self._send_attr('info', data)
 
     def remote_addr(self):
-        return "%s:%s" % (self.socket.getpeername())
+        try:
+            return "%s:%s" % (self.socket.getpeername())
+        except socket.error as e:
+            log.critical("Connection unexpectedly closed: %s" % (self._addr, e))
+            return "0.0.0.0:0"
 
     def appendQueue(self, data):
         self.queue.put(data)
