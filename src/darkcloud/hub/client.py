@@ -32,14 +32,14 @@ class Client():
             if login == 'admin' and password == '1234':
                 self.name = login
                 self.type = CLIENT_ADMIN
-                self._is_authorized = True
+                self.is_authorized = True
                 return True
 
         elif client_type == 'slave':
             if password == 'imslave!':
                 self.name = login
                 self.type = CLIENT_SERVER
-                self._is_authorized = True
+                self.is_authorized = True
                 return True
 
         return False
