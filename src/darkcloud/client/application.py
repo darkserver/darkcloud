@@ -16,7 +16,12 @@ last_cmd = ''
 cfg = None
 
 def on_connect(client):
-    client.sendcmd("auth adm admin 1234");
+    client.sendjson({
+        'action': 'auth',
+        'type': 'adm',
+        'name': 'admin',
+        'password': '1234',
+    })
     print("%s" % client.pool())
 
 def on_recv(client, data):
@@ -61,7 +66,9 @@ def main():
                 continue
             last_cmd = cmd
 
-            client.sendcmd(cmd)
+            client.sendjson({
+                'action': cmd
+            })
             client.pool()
 
     except KeyboardInterrupt:

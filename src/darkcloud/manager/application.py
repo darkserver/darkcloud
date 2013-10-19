@@ -12,7 +12,12 @@ from darkcloud.common.signals import signals
 cfg = None
 
 def on_connect(client):
-    client.sendcmd("auth slave %s imslave!" % (gethostbyaddr('127.0.0.1')[0]))
+    client.sendjson({
+        'action': 'auth',
+        'type': 'slave',
+        'name': gethostbyaddr('127.0.0.1')[0],
+        'password': 'imslave!',
+    })
     welcome_data = client.pool()
     x = json.loads(welcome_data)['resp']['data']
     client.sendinfo({
@@ -41,8 +46,13 @@ def main():
 
     client.connect()
 
-    while True:
-        client.pool()
+    try:
+        while True:
+            client.pool()
+    except KeyboardInterrupt:
+        sys.stdout.write('\r')
+        log.info('Exiting on user request (Ctrl+C)')
+        pass
 
     client.disconnect()
 

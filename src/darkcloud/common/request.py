@@ -6,7 +6,6 @@ import json
 class RequestFramework():
     def __init__(self, use_hmac = True):
         self.use_hmac = use_hmac
-        self.cmds = {}
 
     def reply(self, retcode, data = None):
         # We can use HTTP status codes. Can't we?
@@ -32,27 +31,21 @@ class RequestFramework():
             'data' : data,
         }
 
-    def check_cmd(self, data, level):
-        for d in data:
-            if d in level:
-                if type(level[d]) is dict:
-                    return self.check_cmd(data[1:], level[d])
-                else:
-                    return (level[d], data[1:])
+    def _remote_cmd(self, data, **kwargs):
         return False
 
-    def _exec_function(self, conn, data):
-        try:
-            (function, args) = self.check_cmd(data, self.cmds)
-            function = '_parse_%s' % (function)
-            return getattr(self, function)(
-                data = args,
-                remote_addr = conn.remote_addr()
-            )
-        except IndexError:
-            return False
-        except TypeError:
-            return False
+    def _get_client(self, addr):
+        return addr
+
+    def _exec_function(self, conn, args):
+        print args
+        function = 'action_%s' % (args['action'])
+        return getattr(self, function)(
+            client=self._get_client(conn.remote_addr()),
+            **args
+        )
+
+        return False
 
     def parse(self, conn, message):
         if not message:
@@ -63,21 +56,11 @@ class RequestFramework():
         except ValueError:
             return conn.sendresp(self.reply(500, "This doesn't looks like JSON data..."))
 
-        if 'cmd' not in msg and 'info' not in msg:
+        if 'action' not in msg and 'info' not in msg:
             return False
 
-        if self.use_hmac:
-            try:
-                msg_hash = msg['hmac']
-            except KeyError:
-                return conn.sendresp(self.reply(403))
-            hmac = HMAC()
-
-            if not hmac.compare(msg_hash, msg):
-                return conn.sendresp(self.reply(403))
-
-        if 'cmd' in msg:
-            ret = self._exec_function(conn, msg['cmd'].split(' '))
+        if 'action' in msg:
+            ret = self._exec_function(conn, msg)
             if ret == False:
                 conn.sendresp(self.reply(500))
             else:

@@ -6,35 +6,34 @@ from darkcloud.common.request import RequestFramework
 # decorators...
 def needs_auth(fn):
     def wrapped(self, **kwargs):
-        if 'remote_addr' in kwargs:
-            isauth, cl = client.authorized(kwargs['remote_addr'])
-            if isauth == client.CLIENT_ADMIN:
-                if 'data' in kwargs:
-                    return fn(self, kwargs['data'])
-                else:
-                    return self.reply(500)
+        if 'client' in kwargs:
+            if not kwargs['client'].is_authorized:
+                return self.reply(401)
+            return fn(self, **kwargs)
         return self.reply(401)
     return wrapped
 
 # code
 class Request(RequestFramework):
-    def __init__(self, use_hmac = True):
+    def __init__(self, use_hmac=True):
         RequestFramework.__init__(self, use_hmac)
 
-        self.cmds = {
-            'auth' : 'auth',
-            'list' : 'list',
-        }
+    def _get_client(self, addr):
+        return client.find_client_by_addr(addr)
 
-    def _parse_auth(self, data, **kwargs):
-        if 'remote_addr' in kwargs and client.auth(kwargs['remote_addr'], data[0], data[1], data[2]):
-            return self.reply(200, {'fullname' : core.full_name, 'name' : core.name, 'version' : core.version})
+    def action_auth(self, **kwargs):
+        if 'client' not in kwargs:
+            return self.reply(500)
+
+        if (kwargs['client'].authorize(kwargs['type'],
+                                      kwargs['name'],
+                                      kwargs['password'])):
+            return self.reply(200, {'fullname': core.full_name,
+                                    'name':     core.name,
+                                    'version':  core.version})
         else:
             return self.reply(403)
 
     @needs_auth
-    def _parse_list(self, data, **kwargs):
-        if len(data) >= 1:
-            return self.reply(200, client.list_all([data[0]]))
-        else:
-            return self.reply(200, client.list_all())
+    def action_list(self, **kwargs):
+        return self.reply(200, client.list_all())
