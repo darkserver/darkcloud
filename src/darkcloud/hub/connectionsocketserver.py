@@ -77,6 +77,8 @@ class ConnectionSocketServer(ConnectionSocket):
                 else:
                     log.info("Client %s disconnected" % address)
 
+                    signals.emit('connection:disconnected', address)
+
                     if s in self.connection_outputs:
                         self.connection_outputs.remove(s)
                         writable.remove(s)
@@ -86,8 +88,6 @@ class ConnectionSocketServer(ConnectionSocket):
 
                     del self.message_queues[s]
                     del self.connections[address]
-
-                    signals.emit('connection:disconnected', address)
 
         for s in writable:
             try:
