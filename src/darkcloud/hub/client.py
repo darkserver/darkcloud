@@ -1,3 +1,5 @@
+import json
+
 CLIENT_UNKNOWN = 0
 CLIENT_ADMIN = 1
 CLIENT_USER = 2
@@ -5,33 +7,64 @@ CLIENT_SERVER = 3
 
 clients = []
 
-def add(connection):
-    clients.append({
-        'conn': connection,
-        'address': connection.remote_addr(),
-        'type': CLIENT_UNKNOWN,
-        'info': {},
-    })
+class UnknownClientHash(Exception):
+    def __init__(self, value):
+        self.value = value
 
+    def __unicode__(self):
+        return repr(self.value)
+
+class Client():
+    def __init__(self, connection):
+        self.connection = connection
+
+        self.info = {}
+        self.name = None
+
+        self.type = CLIENT_UNKNOWN
+        self.is_authorized = False
+
+        # only for slave
+        self.capabilities = []
+
+    def authorize(self, client_type, login, password):
+        if client_type == 'adm':
+            if login == 'admin' and password == '1234':
+                self.name = login
+                self.type = CLIENT_ADMIN
+                self._is_authorized = True
+                return True
+
+        elif client_type == 'slave':
+            if password == 'imslave!':
+                self.name = login
+                self.type = CLIENT_SERVER
+                self._is_authorized = True
+                return True
+
+        return False
+
+    def __unicode__(self):
+        return self.name
+
+def find_client_by_addr(addr):
+    for client in clients:
+        if client.connection.remote_addr() == addr:
+            return client
+
+def add(connection):
+    clients.append(Client(connection))
+#    modify_hash(len(clients) - 1)
     return True
 
 def modify(addr, data):
-    for c in clients:
-        if c['address'] == addr:
-            for k,v in data.items():
-                c[k] = v
-            return True
+    for k,v in data.items():
+        find_client_by_addr(addr)[k] = v
+    return True
 
-    return False
-
-def remove(addr):
-    try:
-        for c in clients:
-            if c['address'] == addr:
-                clients.remove(c)
-                return
-    except ValueError:
-        pass
+def remove(connection):
+    clients.remove(find_client_by_addr(connection))
+    return True
 
 def _translate_group_to_int(group_name):
     group_assigns = {
@@ -48,14 +81,14 @@ def _list(group):
     out = []
 
     for c in clients:
-        if c['type'] == _translate_group_to_int(group):
-            out.append(c.copy())
-
-    # remove connection socket
-    # we can't transport this via json
-    # and well... we don't even want to do this
-    for x in out:
-        x.pop('conn')
+        if c.type == _translate_group_to_int(group):
+            _x = {
+                'name': c.name,
+                'address': c.connection.remote_addr(),
+            }
+            if c.type == CLIENT_SERVER:
+                _x['capabilities'] = c.capabilities
+            out.append(_x)
 
     return out
 
@@ -66,63 +99,3 @@ def list_all(show = ['admins', 'users', 'slaves']):
         out[s] = _list(s)
 
     return out
-
-def auth(addr, client_type, clientname, password):
-    if client_type == "adm":
-        if clientname == "admin" and password == "1234":
-            return modify(addr, {
-                'type'     : CLIENT_ADMIN,
-                'address'  : addr,
-                'username' : clientname,
-            })
-
-    elif client_type == "slave":
-        if password == "imslave!":
-            return modify(addr, {
-                'type'     : CLIENT_SERVER,
-                'address'  : addr,
-                'hostname' : clientname,
-            })
-
-    return False
-
-def authorized(addr):
-    for c in clients:
-        if addr == c['address']:
-            return (c['type'], c)
-
-    return (False, None)
-
-def get_by_addr(addr):
-    for c in clients:
-        if addr == c['address']:
-            if 'username' in c:
-                return c['username']
-            elif 'hostname' in c:
-                return c['hostname']
-
-    return '-unknown-'
-
-def send(addr, data):
-    for c in clients:
-        if c['address'] == addr:
-            c['conn'].send(data)
-            return True
-    return False
-
-def send_to_all(data, category = ['admins', 'users', 'slaves']):
-    for c in clients:
-        if 'admins' in category and c['type'] == CLIENT_ADMIN:
-            c['conn'].send(data)
-        if 'users' in category and c['type'] == CLIENT_USER:
-            c['conn'].send(data)
-        if 'slaves' in category and c['type'] == CLIENT_SERVER:
-            if c['state'] == 0:
-                c['conn'].send(data)
-    return True
-
-def on_info(addr, data):
-    for c in clients:
-        if c['address'] == addr:
-            for d in data:
-                c['info'][d] = data[d]
